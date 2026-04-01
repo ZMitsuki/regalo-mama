@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santuario de Montaña — Para Mamá</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --crema: #F7EDD8;
+  --arena: #E8D4A8;
+  --tierra: #8B6340;
+  --bosque: #2A4A35;
+  --bosque-claro: #3D6B52;
+  --hoja: #5A8B6A;
+  --cristal: #4A8FA8;
+  --piedra: #9B8B7A;
+  --noche: #141E18;
+  --noche-suave: #1C2E20;
+  --blanco: #FDFAF4;
+  --sombra: rgba(42,74,53,0.12);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--crema);
+  color: var(--noche);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 300;
+  line-height: 1.85;
+  overflow-x: hidden;
+}
+h1,h2,h3,h4 { font-family: 'Cormorant Garamond', serif; font-weight: 400; line-height: 1.2; }
+
+/* ── SCROLL BAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--crema); }
+::-webkit-scrollbar-thumb { background: var(--hoja); border-radius: 3px; }
+
+/* ── FLOATING FILTRO BUTTON ── */
+#filtro-btn {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
+  background: var(--bosque); color: var(--crema);
+  border: none; padding: 0.7rem 1.3rem;
+  border-radius: 50px; cursor: pointer;
+  font-family: 'Nunito', sans-serif; font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  box-shadow: 0 6px 24px rgba(26,46,32,0.35);
+  transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;
+}
+#filtro-btn:hover { background: var(--bosque-claro); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(26,46,32,0.4); }
+
+/* ── FILTRO OVERLAY ── */
+#filtro-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: radial-gradient(ellipse at 40% 60%, #0D2E1A 0%, #071610 60%, #0A1F24 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+#filtro-overlay.active { opacity: 1; pointer-events: all; }
+.filtro-close {
+  position: absolute; top: 2rem; right: 2rem;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.5); width: 42px; height: 42px;
+  border-radius: 50%; cursor: pointer; font-size: 1.1rem;
+  transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.filtro-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+.filtro-firefly {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle, #A8F0C0, #50D080);
+  animation: ff-drift ease-in-out infinite alternate;
+  opacity: 0;
+}
+@keyframes ff-drift {
+  0%   { transform: translate(0,0); opacity: 0; }
+  20%  { opacity: 0.8; }
+  80%  { opacity: 0.5; }
+  100% { transform: translate(var(--fx),var(--fy)); opacity: 0; }
+}
+.filtro-leaf-deco {
+  font-size: 3rem; margin-bottom: 2rem; opacity: 0.6;
+  animation: leafSway 4s ease-in-out infinite alternate;
+}
+@keyframes leafSway { 0% { transform: rotate(-8deg); } 100% { transform: rotate(8deg); } }
+.filtro-phrase {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.5rem, 4vw, 2.6rem);
+  color: #C8F0D8; font-style: italic; font-weight: 300;
+  max-width: 580px; line-height: 1.45;
+  animation: phraseReveal 0.8s ease;
+}
+@keyframes phraseReveal { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+.filtro-audio-pill {
+  margin-top: 2.5rem;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18);
+  color: #A8F0C0; padding: 0.7rem 1.6rem; border-radius: 50px;
+  cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 0.82rem;
+  letter-spacing: 0.1em; transition: background 0.3s; display: inline-flex; align-items: center; gap: 0.6rem;
+}
+.filtro-audio-pill:hover { background: rgba(255,255,255,0.13); }
+.filtro-foot { margin-top: 1.5rem; font-size: 0.75rem; color: rgba(168,240,192,0.4); letter-spacing: 0.15em; }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh; position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+  background: linear-gradient(165deg, #D8EED8 0%, #F2E8D4 45%, #C8DFF0 100%);
+}
+.hero-particle { position: absolute; pointer-events: none; font-size: 1rem; animation: drift linear infinite; opacity: 0; }
+@keyframes drift {
+  0%   { transform: translateY(-30px) rotate(0deg) translateX(0); opacity:0; }
+  8%   { opacity: 0.6; }
+  92%  { opacity: 0.4; }
+  100% { transform: translateY(105vh) rotate(540deg) translateX(var(--dx)); opacity:0; }
+}
+.hero-eyebrow {
+  font-size: 0.7rem; letter-spacing: 0.45em; text-transform: uppercase;
+  color: var(--hoja); margin-bottom: 1.8rem;
+  animation: riseUp 1s 0.1s both;
+}
+.hero-title {
+  font-size: clamp(3rem, 8vw, 6rem); color: var(--bosque);
+  font-style: italic; font-weight: 300;
+  animation: riseUp 1s 0.25s both;
+  text-shadow: 0 2px 40px rgba(42,74,53,0.08);
+}
+.hero-rule {
+  width: 50px; height: 1px; background: var(--hoja);
+  margin: 2rem auto; animation: riseUp 1s 0.4s both;
+}
+.hero-verse {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem); color: var(--bosque-claro);
+  max-width: 480px; animation: riseUp 1s 0.55s both;
+}
+.hero-from {
+  font-size: 0.85rem; color: var(--tierra); margin-top: 1.5rem;
+  letter-spacing: 0.12em; animation: riseUp 1s 0.7s both;
+}
+.hero-scroll {
+  position: absolute; bottom: 2.5rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  color: var(--piedra); font-size: 0.7rem; letter-spacing: 0.2em;
+  animation: riseUp 1s 1.2s both;
+}
+.scroll-chevron {
+  width: 18px; height: 18px;
+  border-right: 1px solid var(--piedra); border-bottom: 1px solid var(--piedra);
+  transform: rotate(45deg); animation: chevronBounce 2s infinite;
+}
+@keyframes chevronBounce { 0%,100%{transform:rotate(45deg) translate(0,0);} 50%{transform:rotate(45deg) translate(3px,3px);} }
+@keyframes riseUp { from{opacity:0;transform:translateY(22px);} to{opacity:1;transform:none;} }
+
+/* ── SECTION BASE ── */
+.section-label {
+  font-size: 0.68rem; letter-spacing: 0.45em; text-transform: uppercase;
+  color: var(--hoja); margin-bottom: 0.8rem;
+}
+.section-title { font-size: clamp(2rem, 4vw, 3.4rem); color: var(--bosque); font-style: italic; }
+.rule { width: 38px; height: 1px; background: var(--arena); margin: 1.5rem 0; }
+
+/* ── NUESTRAS VISITAS ── */
+#visitas { background: var(--blanco); padding: 7rem 2rem; }
+.visitas-wrap { max-width: 1050px; margin: 0 auto; }
+.visitas-lead { max-width: 480px; color: var(--piedra); font-size: 0.95rem; margin-bottom: 3rem; }
+.visitas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+@media(max-width:720px){ .visitas-grid{ grid-template-columns:1fr; } }
+.visita-card {
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 6px 36px var(--sombra); overflow: hidden;
+}
+.scene-box { height: 200px; position: relative; overflow: hidden; }
+/* Bird scene */
+.bird-bg { background: linear-gradient(180deg, #A8D8F0 0%, #C8EDD0 60%, #D4C8A0 100%); }
+.bird-sun {
+  position: absolute; top: 18px; right: 22px; width: 44px; height: 44px;
+  background: radial-gradient(circle, #FFE8A0 0%, #FFA040 70%);
+  border-radius: 50%; box-shadow: 0 0 28px rgba(255,160,64,0.5);
+}
+.bird-tree { position: absolute; bottom: 0; font-size: 2.8rem; opacity: 0.75; }
+.bird-emoji {
+  position: absolute; animation: birdFly linear infinite;
+  font-size: 1.1rem;
+}
+@keyframes birdFly {
+  0%  { transform: translateX(-60px); opacity:0; }
+  8%  { opacity:1; }
+  92% { opacity:1; }
+  100%{ transform: translateX(calc(100% + 80px)); opacity:0; }
+}
+/* Fish scene */
+.fish-bg { background: linear-gradient(180deg, #2A6A9A 0%, #1A4A7A 55%, #0D2E55 100%); }
+.fish-sand {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 28px;
+  background: linear-gradient(180deg, #9B8B5A, #6B5A30);
+}
+.fish-bubble {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.28); animation: bubbleUp linear infinite;
+}
+@keyframes bubbleUp {
+  0%  { transform: translateY(0) translateX(0); opacity:0.8; }
+  100%{ transform: translateY(-180px) translateX(var(--bx)); opacity:0; }
+}
+.fish-seaweed {
+  position: absolute; bottom: 28px; width: 4px; border-radius: 4px;
+  background: #2A6B4A; transform-origin: bottom center;
+  animation: seaweedSway ease-in-out infinite alternate;
+}
+@keyframes seaweedSway { 0%{ transform:rotate(-10deg); } 100%{ transform:rotate(10deg); } }
+.fish-emoji {
+  position: absolute; animation: fishSwim ease-in-out infinite alternate;
+  font-size: 1.4rem;
+}
+@keyframes fishSwim {
+  0%   { transform: translateX(0) scaleX(1); }
+  45%  { transform: translateX(150px) scaleX(1); }
+  50%  { transform: translateX(150px) scaleX(-1); }
+  95%  { transform: translateX(0) scaleX(-1); }
+  100% { transform: translateX(0) scaleX(1); }
+}
+.visita-info { padding: 1.8rem 2rem; }
+.visita-info h3 { font-size: 1.55rem; color: var(--bosque); margin-bottom: 0.4rem; }
+.visita-info p { font-size: 0.9rem; color: var(--piedra); line-height: 1.75; }
+
+/* ── BITÁCORA ── */
+#bitacora { background: var(--noche); padding: 7rem 2rem; }
+.bitacora-wrap { max-width: 860px; margin: 0 auto; }
+#bitacora .section-label { color: var(--hoja); }
+#bitacora .section-title { color: #E8D8B8; }
+.bitacora-sub {
+  font-family:'Cormorant Garamond',serif; font-style:italic;
+  color: var(--piedra); font-size: 1.05rem; margin: 0.5rem 0 3rem;
+}
+.slide-wrap {
+  border-radius: 18px; overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+.slide { display: none; }
+.slide.active { display: block; animation: slideReveal 0.55s ease; }
+@keyframes slideReveal { from{opacity:0;transform:translateX(24px);} to{opacity:1;transform:none;} }
+.slide-visual { width: 100%; height: 320px; position: relative; overflow: hidden; }
+.slide-photo-badge {
+  position: absolute; bottom: 1rem; right: 1rem;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  color: rgba(255,255,255,0.65); font-size: 0.62rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  padding: 0.3rem 0.75rem; border-radius: 4px;
+  font-family: 'Nunito', sans-serif;
+}
+.slide-body { background: linear-gradient(135deg, #182820, #0D1C14); padding: 2rem 2.5rem; }
+.slide-num { font-size: 0.65rem; letter-spacing: 0.42em; text-transform: uppercase; color: var(--hoja); margin-bottom: 0.4rem; }
+.slide-place { font-family:'Cormorant Garamond',serif; font-size: 2rem; color: #EAD8B8; font-style:italic; margin-bottom: 0.75rem; }
+.slide-quote {
+  font-family:'Cormorant Garamond',serif; font-style:italic;
+  color: var(--hoja); font-size: 1.05rem;
+  border-left: 2px solid var(--hoja); padding-left: 1rem;
+  margin-bottom: 1rem;
+}
+.slide-text { font-size: 0.88rem; color: #8A9E90; line-height: 1.85; }
+/* Slide navigation */
+.bita-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 2rem; gap: 1rem; flex-wrap: wrap; }
+.nav-pill {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  color: #C8D8C0; padding: 0.55rem 1.4rem; border-radius: 50px;
+  cursor: pointer; font-family:'Nunito',sans-serif; font-size: 0.82rem;
+  letter-spacing: 0.06em; transition: all 0.3s;
+}
+.nav-pill:hover:not(:disabled) { background: rgba(255,255,255,0.14); }
+.nav-pill:disabled { opacity: 0.28; cursor: default; }
+.dots { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.18); cursor: pointer;
+  transition: all 0.3s;
+}
+.dot.on { background: var(--hoja); transform: scale(1.5); }
+
+/* ── CARTA ── */
+#carta { padding: 7rem 2rem; background: linear-gradient(155deg, #EBF5EE, var(--crema) 60%); }
+.carta-wrap { max-width: 680px; margin: 0 auto; }
+.carta-paper {
+  background: var(--blanco); border-radius: 6px;
+  padding: 3.5rem 3rem 3rem;
+  box-shadow: 0 10px 50px rgba(42,74,53,0.1), 0 2px 10px rgba(42,74,53,0.06);
+  border-top: 3px solid var(--hoja);
+  position: relative;
+}
+.carta-paper::after {
+  content:''; position:absolute; top:3px; left:3rem; right:3rem;
+  height:1px; background: var(--arena);
+}
+.carta-date { font-size:0.78rem; color:var(--piedra); text-align:right; font-style:italic; margin-bottom:2.2rem; letter-spacing:0.08em; }
+.carta-saludo { font-family:'Cormorant Garamond',serif; font-size:1.9rem; color:var(--bosque); font-style:italic; margin-bottom:1.6rem; }
+.carta-body { font-size:0.95rem; color:#3A3228; line-height:2.1; }
+.carta-body p { margin-bottom:1.3rem; }
+.carta-firma { margin-top:2.5rem; text-align:right; }
+.carta-firma .label { font-size:0.78rem; color:var(--piedra); letter-spacing:0.12em; margin-bottom:0.3rem; }
+.carta-firma .nombre { font-family:'Cormorant Garamond',serif; font-size:2.1rem; color:var(--bosque); font-style:italic; }
+.cierre-placeholder {
+  margin-top:2rem; padding:1.3rem 1.6rem;
+  background:linear-gradient(135deg,#EAF5EE,#E8F2F8);
+  border:1.5px dashed var(--hoja); border-radius:10px;
+  text-align:center; font-size:0.82rem; color:var(--bosque-claro);
+  font-style:italic; line-height:1.7;
+}
+
+/* ── RADAR ── */
+#radar { background: var(--bosque); padding: 7rem 2rem; text-align:center; }
+.radar-wrap { max-width: 640px; margin:0 auto; }
+#radar .section-label { color: var(--hoja); }
+#radar .section-title { color: #E8D8B8; }
+.radar-card {
+  margin-top:3rem; padding:3rem 2rem;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px; position:relative; overflow:hidden;
+}
+.radar-icon { font-size:2.2rem; margin-bottom:1.4rem; display:block; }
+.vibra-text {
+  font-family:'Cormorant Garamond',serif; font-style:italic;
+  font-size:clamp(1.3rem,3.2vw,1.9rem); color:#E8F0D8;
+  line-height:1.5; min-height:76px;
+  display:flex; align-items:center; justify-content:center;
+  animation:vibraReveal 0.6s ease;
+}
+@keyframes vibraReveal { from{opacity:0;transform:scale(0.96);} to{opacity:1;transform:none;} }
+.vibra-btn {
+  margin-top:2rem; display:inline-flex; align-items:center; gap:0.5rem;
+  background:var(--hoja); border:none; color:#fff;
+  padding:0.72rem 2rem; border-radius:50px;
+  cursor:pointer; font-family:'Nunito',sans-serif;
+  font-size:0.83rem; letter-spacing:0.1em; transition:all 0.3s;
+}
+.vibra-btn:hover { background:var(--bosque-claro); transform:translateY(-2px); }
+
+/* ── FOOTER ── */
+footer {
+  background:var(--noche); color:rgba(255,255,255,0.25);
+  text-align:center; padding:2rem;
+  font-size:0.72rem; letter-spacing:0.18em;
+}
+
+/* ── PLACE SCENE STYLES ── */
+.p-scene { width:100%; height:100%; position:relative; }
+.p-scene span { position:absolute; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ FILTRO DE MALAS ENERGÍAS ════════════ -->
+<div id="filtro-overlay">
+  <button class="filtro-close" onclick="closeFiltro()">✕</button>
+  <div class="filtro-leaf-deco">🌿</div>
+  <p class="filtro-phrase" id="filtro-phrase"></p>
+  <button class="filtro-audio-pill" onclick="toggleAudio()">
+    🎵 &nbsp;Sonidos del bosque &nbsp;<span style="opacity:0.5;font-size:0.72rem;">(conecta tus audífonos)</span>
+  </button>
+  <p class="filtro-foot">🍃 Este espacio es solo tuyo. Respira.</p>
+</div>
+
+<audio id="forest-audio" src="audio/sonido.mp3" loop></audio>
+
+<!-- ════════════ FLOATING BUTTON ════════════ -->
+<button id="filtro-btn" onclick="openFiltro()">🌿 Filtro de Malas Energías</button>
+
+<!-- ════════════ HERO ════════════ -->
+<section id="hero">
+  <p class="hero-eyebrow">Un regalo del corazón &nbsp;·&nbsp; De Gabriel para Mamá</p>
+  <h1 class="hero-title">Santuario<br>de Montaña</h1>
+  <div class="hero-rule"></div>
+  <p class="hero-verse">"Este rincón fue construido solo para ti,<br>para que puedas respirar sin pedir permiso."</p>
+  <p class="hero-from">— Con todo mi amor, Gabriel</p>
+  <div class="hero-scroll">
+    <span>descubre</span>
+    <div class="scroll-chevron"></div>
+  </div>
+</section>
+
+<!-- ════════════ NUESTRAS VISITAS ════════════ -->
+<section id="visitas">
+  <div class="visitas-wrap">
+    <p class="section-label">Nuestras Visitas</p>
+    <h2 class="section-title">Los que siempre te esperan</h2>
+    <div class="rule"></div>
+    <p class="visitas-lead">Ellos no saben decirlo con palabras, pero tú eres su mundo entero. Y eso lo dice todo.</p>
+    <div class="visitas-grid">
+
+      <!-- Pajaritos -->
+      <div class="visita-card">
+        <div class="scene-box bird-bg" id="bird-scene">
+          <div class="bird-sun"></div>
+        </div>
+        <div class="visita-info">
+          <h3>Los Pajaritos del Platito</h3>
+          <p>Cada mañana, con sus trinos, te dan los buenos días antes que nadie. Saben que siempre encontrarán en ti calidez genuina: tu mano paciente, tu mirada suave, y ese amor que das sin guardar nada para después.</p>
+        </div>
+      </div>
+
+      <!-- Peces -->
+      <div class="visita-card">
+        <div class="scene-box fish-bg" id="fish-scene">
+          <div class="fish-sand"></div>
+        </div>
+        <div class="visita-info">
+          <h3>Los Peces del Hogar</h3>
+          <p>Nadan en círculos tranquilos, como si vivieran en el mismo tiempo pausado que tú les has regalado. En su mundo hay paz porque tú pusiste paz ahí. Todo lo que cuidas con amor, florece.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ BITÁCORA ════════════ -->
+<section id="bitacora">
+  <div class="bitacora-wrap">
+    <p class="section-label">Bitácora de Aventuras</p>
+    <h2 class="section-title">El camino de una mujer valiente</h2>
+    <p class="bitacora-sub">Cada lugar que pisaste, lo transformaste con tu sola presencia.</p>
+
+    <div class="slide-wrap">
+
+      <!-- 01 Barra de Santiago -->
+      <div class="slide active" id="s0">
+        <div class="slide-visual" id="v0"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 01 / 09</p>
+          <h3 class="slide-place">Barra de Santiago</h3>
+          <p class="slide-quote">"Donde los manglares enseñan que las raíces profundas son las que te permiten llegar más lejos."</p>
+          <p class="slide-text">Entre sus canales tranquilos y cielos infinitos, la naturaleza guarda silencio para que quienes saben escuchar encuentren la paz. Tú siempre supiste escuchar.</p>
+        </div>
+      </div>
+
+      <!-- 02 Río Jiboa -->
+      <div class="slide" id="s1">
+        <div class="slide-visual" id="v1"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 02 / 09</p>
+          <h3 class="slide-place">Río Jiboa</h3>
+          <p class="slide-quote">"Como este río que fluye sin preguntar hacia dónde va, tú sigues con una fuerza que nadie puede detener."</p>
+          <p class="slide-text">Sus aguas frescas y piedras volcánicas nos contaron historias antiguas. El río nunca se cansa. Tú tampoco. Y eso, Mamá, merece ser celebrado.</p>
+        </div>
+      </div>
+
+      <!-- 03 Los Cañones -->
+      <div class="slide" id="s2">
+        <div class="slide-visual" id="v2"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 03 / 09</p>
+          <h3 class="slide-place">Los Cañones</h3>
+          <p class="slide-quote">"No importa qué tan inclinado esté el camino, tu sonrisa es la mejor tracción que hemos tenido."</p>
+          <p class="slide-text">Ante sus paredes imponentes, la vida se siente pequeña y grande al mismo tiempo. Tú miraste esa grandeza sin retroceder ni un centímetro. Así eres siempre.</p>
+        </div>
+      </div>
+
+      <!-- 04 Cerro de la Cruz -->
+      <div class="slide" id="s3">
+        <div class="slide-visual" id="v3"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 04 / 09</p>
+          <h3 class="slide-place">Cerro de la Cruz</h3>
+          <p class="slide-quote">"Subir contigo siempre fue diferente: no importaba la cima, importaba quién iba al lado."</p>
+          <p class="slide-text">Desde su altura el mundo se ve distinto. Más claro, más honesto. Y ahí, con el viento en la cara y la tierra bajo los pies, recordamos por qué amamos tanto escaparnos juntos.</p>
+        </div>
+      </div>
+
+      <!-- 05 Río Lempa -->
+      <div class="slide" id="s4">
+        <div class="slide-visual" id="v4"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 05 / 09</p>
+          <h3 class="slide-place">Río Lempa</h3>
+          <p class="slide-quote">"El río más grande del país, y aún así no tan grande como el corazón que encontramos a su orilla."</p>
+          <p class="slide-text">Sus aguas anchas y serenas llevan la memoria de generaciones. Nosotros dejamos ahí nuestra propia historia: una tarde, unas risas, y la certeza de que estos momentos valen todo.</p>
+        </div>
+      </div>
+
+      <!-- 06 Playa Las Flores -->
+      <div class="slide" id="s5">
+        <div class="slide-visual" id="v5"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 06 / 09</p>
+          <h3 class="slide-place">Playa Las Flores</h3>
+          <p class="slide-quote">"Las flores crecen donde el suelo las cuida. Y tú, Mamá, eres el mejor suelo que hemos tenido."</p>
+          <p class="slide-text">Sus olas perfectas, su arena oscura volcánica, ese olor a sal mezclado con libertad. En Las Flores aprendimos que la belleza más honesta no necesita anunciarse.</p>
+        </div>
+      </div>
+
+      <!-- 07 Playa El Espino -->
+      <div class="slide" id="s6">
+        <div class="slide-visual" id="v6"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 07 / 09</p>
+          <h3 class="slide-place">Playa El Espino</h3>
+          <p class="slide-quote">"Como las palmeras que doblan con el viento pero jamás se rompen, tú nos has mostrado lo que es resistir con gracia."</p>
+          <p class="slide-text">Sus cocoteros inclinados sobre el mar, el ritmo eterno de las olas. El Espino siempre supo guardarnos un pedazo de paz cuando más lo necesitábamos.</p>
+        </div>
+      </div>
+
+      <!-- 08 El Espíritu de la Montaña -->
+      <div class="slide" id="s7">
+        <div class="slide-visual" id="v7"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 08 / 09</p>
+          <h3 class="slide-place">El Espíritu de la Montaña</h3>
+          <p class="slide-quote">"En nuestra familia, tú eres el motor que nunca falla: en llano, en barro, en piedra, en todo."</p>
+          <p class="slide-text">La niebla que baja entre los pinos, el frío que se abraza a la piel, el silencio que solo la montaña sabe dar. Aquí, más que en ningún otro lado, sentimos que el mundo tiene sentido.</p>
+        </div>
+      </div>
+
+      <!-- 09 Casa Cristal -->
+      <div class="slide" id="s8">
+        <div class="slide-visual" id="v8"></div>
+        <div class="slide-body">
+          <p class="slide-num">Parada 09 / 09</p>
+          <h3 class="slide-place">Casa Cristal</h3>
+          <p class="slide-quote">"Como sus paredes transparentes, tú siempre nos has dejado ver lo más bonito: tu corazón sin filtros."</p>
+          <p class="slide-text">Despertarse rodeada de montaña, con el cielo tan cerca que casi se podía tocar. Casa Cristal fue más que un lugar: fue un recordatorio de que los mejores momentos suceden cuando nos permitimos simplemente estar.</p>
+        </div>
+      </div>
+
+    </div><!-- /slide-wrap -->
+
+    <div class="bita-nav">
+      <button class="nav-pill" id="prev-b" onclick="go(-1)" disabled>← Anterior</button>
+      <div class="dots" id="dots-row"></div>
+      <button class="nav-pill" id="next-b" onclick="go(1)">Siguiente →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CARTA ════════════ -->
+<section id="carta">
+  <div class="carta-wrap">
+    <p class="section-label">Para Mamá</p>
+    <h2 class="section-title" style="color:var(--bosque)">La carta que guardé<br>demasiado tiempo</h2>
+    <div class="rule"></div>
+    <div class="carta-paper">
+      <p class="carta-date">Con todo el amor del mundo — hoy y siempre</p>
+      <h3 class="carta-saludo">Mamá,</h3>
+      <div class="carta-body">
+        <p>No siempre sé cómo decirte las cosas en voz alta. Supongo que eso lo heredé de ti: guardamos mucho adentro para que los demás no tengan que cargar lo que ya es nuestro. Pero hoy quiero romper esa costumbre, aunque sea aquí, en estas letras.</p>
+        <p>Quiero que sepas que te veo. Que veo el esfuerzo que haces cada día por estar bien, por sonreír, por darnos energía incluso cuando por dentro necesitas un respiro. Y lejos de hacerme sentir que me ocultas algo, eso me hace admirarte más de lo que las palabras me alcanzan para decirte.</p>
+        <p>Me encanta verte cuidar a tus animales. Hay algo en la manera en que lo haces — con calma, con cariño genuino, sin apuro — que me dice todo lo que necesito saber sobre quién eres. Porque cuidas así a los peces, a los pajaritos, y también así nos has cuidado a nosotros: con esa misma paciencia suave que no se aprende, se tiene.</p>
+        <p>Cuando te veo al volante en una terracería empinada, con la música puesta y la ventana abajo, eres la persona más libre del mundo. Y me alegra tanto que encuentres esos momentos. El monte, la playa, el río: esos lugares te conocen de una manera diferente, y creo que en ellos eres tú más que en ningún otro lado.</p>
+        <p>Hice este espacio para ti. Para que vengas aquí cuando necesites respirar, cuando el ruido del mundo sea demasiado, cuando quieras recordar que hay personas que te aman profundamente y que te admiran en silencio cada día.</p>
+        <p>Eres el motor que nunca falla, Mamá. Y hoy, por una vez, quiero que apagues el motor. Que te quedes quieta un momento. Que descanses.</p>
+        <p>Estoy infinitamente orgulloso de ser tu hijo.</p>
+      </div>
+      <div class="carta-firma">
+        <p class="label">Con todo mi amor,</p>
+        <p class="nombre">Gabriel</p>
+      </div>
+      <div class="cierre-placeholder">
+        ✏️ <strong>Mamá.</strong><br>
+        Me alegra infinitamente saber que tuve a una persona que me acompaña siempre no importa dónde vaya.<br>
+        Y asi como tu siempre estuviste ahí, yo tambien estaré para ti. ¡Eres una súper mamá! y te amo con todo mi corazón. 🌱
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ RADAR DE BUENAS VIBRAS ════════════ -->
+<section id="radar">
+  <div class="radar-wrap">
+    <p class="section-label">Radar de Buenas Vibras</p>
+    <h2 class="section-title">Para cuando lo necesites</h2>
+    <div class="rule" style="background:var(--hoja);margin:1.5rem auto;"></div>
+    <div class="radar-card">
+      <span class="radar-icon">🌿</span>
+      <p class="vibra-text" id="vibra-p">Cargando amor...</p>
+      <br>
+      <button class="vibra-btn" onclick="nextVibra()">✨ &nbsp;Nueva vibra</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>Hecho con amor infinito &nbsp;·&nbsp; De Gabriel para Mamá &nbsp;·&nbsp; Siempre 🌱</footer>
+
+<script>
+// ───── HERO PARTICLES ─────
+const hero = document.getElementById('hero');
+const pEmojis = ['🍃','🌿','🍂','🌱'];
+for(let i=0;i<14;i++){
+  const p=document.createElement('span');
+  p.className='hero-particle';
+  const dx = (Math.random()-0.5)*120;
+  p.style.cssText=`left:${Math.random()*100}%;font-size:${9+Math.random()*8}px;--dx:${dx}px;animation-duration:${10+Math.random()*12}s;animation-delay:${Math.random()*12}s;`;
+  p.textContent=pEmojis[i%4];
+  hero.appendChild(p);
+}
+
+// ───── BIRD SCENE ─────
+const bs=document.getElementById('bird-scene');
+['🌳','🌲','🌳','🌲'].forEach((t,i)=>{
+  const el=document.createElement('span');
+  el.className='bird-tree';
+  el.style.cssText=`left:${5+i*22}%;font-size:${2.2+Math.random()*0.6}rem;opacity:${0.65+Math.random()*0.2};`;
+  el.textContent=t; bs.appendChild(el);
+});
+for(let i=0;i<5;i++){
+  const b=document.createElement('span');
+  b.className='bird-emoji';
+  b.textContent='🐦';
+  b.style.cssText=`top:${12+Math.random()*45}%;font-size:${0.85+Math.random()*0.4}rem;animation-duration:${5+Math.random()*6}s;animation-delay:${i*2.2}s;`;
+  bs.appendChild(b);
+}
+
+// ───── FISH SCENE ─────
+const fs=document.getElementById('fish-scene');
+for(let i=0;i<7;i++){
+  const b=document.createElement('div');
+  b.className='fish-bubble';
+  const w=4+Math.random()*6;
+  b.style.cssText=`left:${8+Math.random()*84}%;bottom:${Math.random()*35}%;width:${w}px;height:${w}px;--bx:${(Math.random()-.5)*18}px;animation-duration:${3+Math.random()*3}s;animation-delay:${Math.random()*4}s;`;
+  fs.appendChild(b);
+}
+for(let i=0;i<5;i++){
+  const sw=document.createElement('div');
+  sw.className='fish-seaweed';
+  sw.style.cssText=`left:${6+i*17}%;height:${20+Math.random()*20}px;width:${3+Math.random()*2}px;animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*2}s;`;
+  fs.appendChild(sw);
+}
+[{e:'🐠',t:'30%',d:'0s',r:'7s'},{e:'🐟',t:'52%',d:'2s',r:'9s'},{e:'🐡',t:'40%',d:'4s',r:'8s'}].forEach(f=>{
+  const el=document.createElement('span');
+  el.className='fish-emoji';
+  el.textContent=f.e;
+  el.style.cssText=`top:${f.t};left:12%;animation-delay:${f.d};animation-duration:${f.r};`;
+  fs.appendChild(el);
+});
+
+// ───── SLIDE PLACE SCENES ─────
+const imageConfigs = [
+  { name: 'barra', size: 'cover', position: 'center' },
+  { name: 'jiboa', size: 'cover', position: 'center' },
+  { name: 'canones', size: 'cover', position: 'center' },
+  { name: 'cruz', size: 'cover', position: 'center' },
+  { name: 'lempa', size: 'cover', position: 'center' },
+  { name: 'flores', size: 'cover', position: 'center 70%' }, // Vertical photo, lower center
+  { name: 'espino', size: 'cover', position: 'center' },
+  { name: 'espiritu', size: 'cover', position: 'center' },
+  { name: 'casa', size: 'cover', position: 'center bottom' }   // Vertical photo, show bottom part
+];
+
+imageConfigs.forEach((config, i) => {
+  const el = document.getElementById('v' + i);
+  el.style.backgroundImage = `url('img/${config.name}.jpg')`;
+  el.style.backgroundSize = config.size;
+  el.style.backgroundPosition = config.position;
+  el.style.backgroundRepeat = 'no-repeat';
+});
+
+// ───── BITÁCORA NAV ─────
+let cur=0; const total=9;
+const dotsEl=document.getElementById('dots-row');
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=(()=>{const n=i;return()=>goTo(n);})();
+  dotsEl.appendChild(d);
+}
+function goTo(n){
+  document.getElementById('s'+cur).classList.remove('active');
+  dotsEl.children[cur].classList.remove('on');
+  cur=n;
+  document.getElementById('s'+cur).classList.add('active');
+  dotsEl.children[cur].classList.add('on');
+  document.getElementById('prev-b').disabled=cur===0;
+  document.getElementById('next-b').disabled=cur===total-1;
+}
+function go(d){ const n=cur+d; if(n>=0&&n<total) goTo(n); }
+
+// ───── FILTRO ─────
+const overlay=document.getElementById('filtro-overlay');
+const filtroPhrases=[
+  "Respira. Las malas energías no pueden seguirte hasta aquí.",
+  "Estás rodeada de bosque, de paz, y de amor.",
+  "Cierra los ojos. Escucha el silencio. Esto es solo tuyo.",
+  "El mundo puede esperar. No tienes que cargar todo siempre.",
+  "Aquí no hay prisa. Solo hay presente.",
+  "Suelta lo que pesa. La montaña lo sostiene por ti.",
+  "Eres suficiente. Más que suficiente. Siempre lo has sido.",
+  "Hoy el monte te abraza desde aquí.",
+];
+let fi=0, ftimer;
+function openFiltro(){
+  overlay.classList.add('active');
+  showFPhrase();
+  ftimer=setInterval(showFPhrase,4500);
+  for(let i=0;i<22;i++){
+    const ff=document.createElement('div');
+    ff.className='filtro-firefly';
+    const w=2+Math.random()*5;
+    ff.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${w}px;height:${w}px;--fx:${(Math.random()-.5)*160}px;--fy:${(Math.random()-.5)*160}px;animation-duration:${5+Math.random()*7}s;animation-delay:${Math.random()*5}s;`;
+    overlay.appendChild(ff);
+  }
+}
+function closeFiltro(){
+  overlay.classList.remove('active');
+  clearInterval(ftimer);
+  overlay.querySelectorAll('.filtro-firefly').forEach(f=>f.remove());
+}
+function toggleAudio(){
+  const audio = document.getElementById('forest-audio');
+  if (audio.paused) {
+    audio.play();
+  } else {
+    audio.pause();
+  }
+}
+function showFPhrase(){
+  const el=document.getElementById('filtro-phrase');
+  el.style.animation='none'; el.offsetHeight;
+  el.style.animation='phraseReveal 0.8s ease both';
+  el.textContent=filtroPhrases[fi%filtroPhrases.length];
+  fi++;
+}
+
+// ───── RADAR DE BUENAS VIBRAS ─────
+const vibras=[
+  "Eres la raíz de todo lo bueno en esta familia. 🌱",
+  "Tu sonrisa vale más que cualquier paisaje que hayamos visto juntos. 🌄",
+  "Gracias por enseñarnos que la vida se vive mejor con las ventanas abiertas. 🪟",
+  "El mundo es más bonito porque tú estás en él, Mamá. 🌍",
+  "Eres fuerte como las raíces de un roble y suave como la niebla del cerro. 🌫️",
+  "Cada pajarito que llega a tu platito sabe que encontró a la persona más especial. 🐦",
+  "Tu manera de cuidar dice más de ti que mil palabras. 💙",
+  "Hoy el universo te manda luz, calma y todo el amor que mereces. ✨",
+  "No importa qué tan empinado esté el camino, tú siempre llegas. 🛤️",
+  "Eres la mejor parte de cada aventura que hemos tenido. 🗺️",
+  "En tu presencia, todo se siente más seguro. Eso no lo hace cualquiera. 🌿",
+  "Descansa. Aquí estamos nosotros. Te tenemos. 💚",
+  "La montaña te conoce por tu nombre, y siempre te recibe con los brazos abiertos. ⛰️",
+  "Lo que siembras con amor, siempre vuelve multiplicado. Y tú has sembrado mucho. 🌸",
+];
+let vi=Math.floor(Math.random()*vibras.length);
+function nextVibra(){
+  vi=(vi+1)%vibras.length;
+  const el=document.getElementById('vibra-p');
+  el.style.animation='none'; el.offsetHeight;
+  el.style.animation='vibraReveal 0.6s ease both';
+  el.textContent=vibras[vi];
+}
+document.getElementById('vibra-p').textContent=vibras[vi];
+</script>
+</body>
+</html>
